@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Search from './components/Search'
+import Spinner from './components/Spinner';
+import MovieCard from './components/MovieCard';
 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY =import.meta.env.VITE_TMDB_API_KEY;
@@ -20,9 +22,10 @@ const App = () => {
   const [loading, setloading] = useState(false)
   
 
-  const fetchMovies = async () => {
+  const fetchMovies = async (query='') => {
     try {
-      const endPoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`
+      const endPoint = query ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}` : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`
+      //`${API_BASE_URL}/discover/movie?sort_by=popularity.desc`
       const response = await fetch(endPoint, API_OPTIONS) 
       if(!response.ok) throw new Error("something went wrong")    
       const data = await response.json()
@@ -33,6 +36,7 @@ const App = () => {
         return;
       } 
         setmovies(data.results || [])
+        console.log(data)
         seterror('')
         setloading(false)
       
@@ -46,8 +50,8 @@ const App = () => {
     }
   }
   useEffect(() => {
-    fetchMovies()
-  }, [])
+    fetchMovies(searchTerm)
+  }, [searchTerm])
   return (
     <main>
       <div className='pattern'/>
@@ -60,16 +64,16 @@ const App = () => {
         </header>
         
        <section className='all-movies'>
-        <h2>All Movies</h2>
+        <h2 className='mt-20'>All Movies</h2>
         {loading ? 
         (
-          <p className='text-white'>Loading ...</p>
+          <Spinner />
         ): error ? (
           <p className='text-red-500'>{error}</p>
         ) :(
           <ul>
             {movies.map((movie) => (
-              <p className='text-white' key={movie.id}>{movie.title}</p>
+              <MovieCard key={movie.id} movie={movie} />
 
             ))}
           </ul>
