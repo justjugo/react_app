@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
+import { useDebounce, useStartTyping } from 'react-use';
 import Search from './components/Search'
 import Spinner from './components/Spinner';
 import MovieCard from './components/MovieCard';
 
+//api key and base url 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY =import.meta.env.VITE_TMDB_API_KEY;
-console.log(API_KEY)
 const API_OPTIONS = {
   method: 'GET',
   headers: {
@@ -20,12 +21,18 @@ const App = () => {
   const [error, seterror] = useState('')
   const [movies, setmovies] = useState([])
   const [loading, setloading] = useState(false)
+  const [debounceSearch, setdebounceSearch] = useState()
+  //debounce the search term to avoid making too many requests
+  // by waiting for the user to stop typing for a certain amount of time
+  useDebounce(() => {
+    setdebounceSearch(searchTerm)
+  }, 500, [searchTerm])
+  
   
 
   const fetchMovies = async (query='') => {
     try {
       const endPoint = query ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}` : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`
-      //`${API_BASE_URL}/discover/movie?sort_by=popularity.desc`
       const response = await fetch(endPoint, API_OPTIONS) 
       if(!response.ok) throw new Error("something went wrong")    
       const data = await response.json()
@@ -49,9 +56,12 @@ const App = () => {
       setloading(false)
     }
   }
+
+
+  //use effect to fetch movies when the search term changes
   useEffect(() => {
-    fetchMovies(searchTerm)
-  }, [searchTerm])
+    fetchMovies(debounceSearch)
+  }, [debounceSearch])
   return (
     <main>
       <div className='pattern'/>
@@ -60,7 +70,7 @@ const App = () => {
           <img src="./hero-image.png" alt="Hero Pattern"  />
           <h1>find <span className='text-gradient'>Movies</span> You Will Enjoy Without The Hassle </h1>
         <Search searchTerm={searchTerm} setsearchTerm={setsearchTerm} /> 
-         <h1 className='text-white'>{searchTerm}</h1>
+        
         </header>
         
        <section className='all-movies'>
