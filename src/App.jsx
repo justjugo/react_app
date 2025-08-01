@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { use, useEffect, useState } from 'react'
 import { useDebounce, useStartTyping } from 'react-use';
 import Search from './components/Search'
 import Spinner from './components/Spinner';
 import MovieCard from './components/MovieCard';
+import { fetchPopularMovies, updateSearchCount } from './appwrite';
 
 //api key and base url 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
@@ -17,35 +18,47 @@ const API_OPTIONS = {
 
 
 const App = () => {
+  //state variables 
   const [searchTerm, setsearchTerm] = useState('')
   const [error, seterror] = useState('')
   const [movies, setmovies] = useState([])
   const [loading, setloading] = useState(false)
   const [debounceSearch, setdebounceSearch] = useState()
+  const [trendingMovies, settrendingMovies] = useState([])
+
   //debounce the search term to avoid making too many requests
   // by waiting for the user to stop typing for a certain amount of time
   useDebounce(() => {
     setdebounceSearch(searchTerm)
-  }, 500, [searchTerm])
+  }, 1000, [searchTerm])
   
   
-
+  //fetch movies from the api
   const fetchMovies = async (query='') => {
     try {
       const endPoint = query ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}` : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`
-      const response = await fetch(endPoint, API_OPTIONS) 
+      const response = await fetch(endPoint, API_OPTIONS)
+
+      //check if the response is ok 
       if(!response.ok) throw new Error("something went wrong")    
       const data = await response.json()
 
+      //check if the response is valid
       if(data.response === 'False') {
         seterror(data.error || 'something went wrong')
         setmovies([])
         return;
       } 
-        setmovies(data.results || [])
-        console.log(data)
+      //update the state variables with the fetched data
+        setmovies(data.results || []) 
         seterror('')
         setloading(false)
+        if(query && data.results.length >0)
+        {
+          updateSearchCount(query,data.results[0])
+        
+        }
+        fetchPopularMovies()
       
       
     } catch (error) {
@@ -57,11 +70,26 @@ const App = () => {
     }
   }
 
+  const loadTrendingMovies = async () => {
+    try {
+      const movies = await fetchPopularMovies()
+      settrendingMovies(movies)
+      
+    } catch (error) {
+      console.log(error)
+      
+    }
+  }
 
   //use effect to fetch movies when the search term changes
   useEffect(() => {
     fetchMovies(debounceSearch)
   }, [debounceSearch])
+
+  useEffect(() => {
+    loadTrendingMovies()
+  }, [])
+
   return (
     <main>
       <div className='pattern'/>
@@ -72,9 +100,26 @@ const App = () => {
         <Search searchTerm={searchTerm} setsearchTerm={setsearchTerm} /> 
         
         </header>
-        
+        {
+          trendingMovies.length > 0 && (
+            <section className='trending'>
+            <h2 className='mt-20'>Trending Movies</h2>
+            <ul>
+              {trendingMovies.map((movie, index) => (
+                <li key={movie.$id}>
+                  <p>{index +1}</p>
+                  <img src={movie.posterUrl} alt={movie.searchTerm} />
+                  <p>{movie.searchTerm}</p>
+                  
+
+                </li>
+
+              ))}</ul>
+              </section>
+          )
+        }
        <section className='all-movies'>
-        <h2 className='mt-20'>All Movies</h2>
+        <h2 >All Movies</h2>
         {loading ? 
         (
           <Spinner />
