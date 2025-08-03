@@ -1,14 +1,20 @@
 # React Film Search
 
-A simple and elegant movie search application built with React, Vite, and Tailwind CSS. This project leverages The Movie Database (TMDb) API for fetching movie data and uses Appwrite as a backend to track and display trending searches.
+A simple and elegant movie search application built with React, Vite, and Tailwind CSS. This project allows users to search for movies, view details, and maintain a personal wishlist of their favorite films. It leverages The Movie Database (TMDb) API for fetching movie data and uses Appwrite as a backend to track and display trending searches.
 
 ## ✨ Features
 
 -   **Movie Search**: Instantly search for movies by title.
+-   **Wishlist Functionality**:
+    -   **Add & Remove**: Easily add movies to a personal wishlist by clicking the heart icon on any movie card. Click again to remove it.
+    -   **Persistent Storage**: Your wishlist is saved in your browser's `localStorage`, so it persists even after you close the tab or refresh the page.
+    -   **Favorites Section**: View all your wishlisted movies in a dedicated "Favourite Movies" section on the homepage.
 -   **Debounced Input**: Smart search functionality that waits for the user to stop typing before making an API request, ensuring a smooth user experience and efficient API usage.
 -   **Trending Searches**: Displays a list of the most popular movie searches, powered by an Appwrite database.
+-   **Pagination**: Navigate through multiple pages of search results.
 -   **Dynamic UI**: Clean and responsive interface built with Tailwind CSS.
 -   **Error Handling**: Gracefully handles API errors and loading states.
+
 
 ## 🛠️ Tech Stack
 
@@ -91,3 +97,4 @@ The application should now be running on `http://localhost:5173`.
     -   If it exists, it increments the `count` attribute.
     -   If it doesn't exist, it creates a new document with the search term, movie details, and a count of 1.
 -   The `fetchPopularMovies` function retrieves the top 5 documents from the Appwrite collection, ordered by the `count` in descending order, to display as "Trending Movies".
+-   The **Wishlist** feature allows users to click a heart icon on a movie. This action adds or removes the movie from a state array, which is then persisted to `localStorage`. The "Favourite Movies" component reads from this state to display the user's selections.
